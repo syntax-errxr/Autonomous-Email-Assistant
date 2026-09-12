@@ -72,7 +72,7 @@ If you want to **Respond** to the notification anyway:
 
 ---
 
-## âœï¸ Test Case 3: The "Respond" Logic & Human-in-the-Loop
+## ✍️ Test Case 3: The "Respond" Logic & Human-in-the-Loop
 **Goal:** Verify that the agent can autonomously draft an email, but is blocked from actually sending it without your permission.
 
 **Input Payload:**
@@ -81,15 +81,15 @@ If you want to **Respond** to the notification anyway:
   "email_input": {
     "from": "Sarah Manager <sarah@company.com>",
     "to": "Rohit <rohit@example.com>",
-    "subject": "Update on Backend Migration",
-    "body": "Hi Rohit, can you give me a quick status update on the LangGraph migration? Are we on track for Friday?",
+    "subject": "URGENT: Update on Backend Migration required",
+    "body": "Hi Rohit, I need you to reply to this email right now with a quick status update on the LangGraph migration. Are we on track for Friday?",
     "id": "manager_id_789"
   }
 }
 ```
 
 * **What to expect:** 
-  1. The `triage_router` classifies it as `"respond"`.
+  1. The `triage_router` classifies it as `"respond"`. *(Note: If the local Llama model decides to be overly cautious and classifies it as "notify" instead, it will pause at `triage_interrupt_handler`. If that happens, just use the "response" JSON from Test Case 2 to force it to draft a reply!)*
   2. The graph moves to `response_agent`, which invokes the LLM.
   3. The LLM decides to use the `write_email` tool. 
   4. The graph routes to `interrupt_handler` and **PAUSES**.
