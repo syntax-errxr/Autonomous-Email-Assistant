@@ -261,6 +261,10 @@ def interrupt_handler(state: State, store: BaseStore) -> Command[Literal["llm_ca
         # Allowed tools for HITL
         hitl_tools = ["write_email", "schedule_meeting", "Question"]
         
+        # Skip malformed tool calls (common with local LLMs)
+        if not tool_call.get("name") or tool_call["name"] not in tools_by_name:
+            continue
+            
         # If tool is not in our HITL list, execute it directly without interruption
         if tool_call["name"] not in hitl_tools:
 
@@ -479,13 +483,17 @@ def should_continue(state: State, store: BaseStore) -> Literal["interrupt_handle
     """Route to tool handler, or end if Done tool called"""
     messages = state["messages"]
     last_message = messages[-1]
-    if last_message.tool_calls:
+    
+    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
         for tool_call in last_message.tool_calls: 
             if tool_call["name"] == "Done":
                 # TODO: Here, we could update the background memory with the email-response for follow up actions. 
-                return END
+                return "__end__"
             else:
                 return "interrupt_handler"
+                
+    # Default route if no tool calls (e.g. LLM just said "I'm done")
+    return "__end__"
 
 # Build workflow
 agent_builder = StateGraph(State)
