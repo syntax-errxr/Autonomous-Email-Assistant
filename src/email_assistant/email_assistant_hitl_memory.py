@@ -315,7 +315,26 @@ def interrupt_handler(state: State, store: BaseStore) -> Command[Literal["llm_ca
         }
 
         # Send to Agent Inbox and wait for response
-        response = interrupt([request])[0]
+        raw_response = interrupt([request])
+        
+        # Robust handling for LangSmith Studio payloads
+        import json
+        if isinstance(raw_response, str):
+            try:
+                raw_response = json.loads(raw_response)
+            except:
+                pass
+                
+        if isinstance(raw_response, list) and len(raw_response) > 0:
+            response = raw_response[0]
+        else:
+            response = raw_response
+            
+        if isinstance(response, str):
+            try:
+                response = json.loads(response)
+            except:
+                pass
 
         # Handle the responses 
         if response["type"] == "accept":
